@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中阿翻译系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-group {
+            margin-bottom: 20px;
+        }
+
+        .upload-group h3 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            display: none;
+        }
+
+        .api-selector {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .api-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .api-option:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .api-option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .api-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .translate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .translate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+        }
+
+        .translate-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .file-result {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .translation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .translation-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .copy-btn {
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .text-content {
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+            background: white;
+            font-size: 14px;
+        }
+
+        .arabic-text {
+            direction: rtl;
+            font-family: 'Amiri', serif;
+            font-size: 1.1em;
+            text-align: justify;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 10px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .translation-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .api-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>中阿翻译系统</h1>
+        
+        <div class="upload-section">
+            <div class="upload-group">
+                <h3>📁 上传中文文本文件（支持多个 .txt 文件）</h3>
+                <div class="file-input-wrapper">
+                    <input type="file" id="textFiles" class="file-input" multiple accept=".txt">
+                    <label for="textFiles" class="file-input-label">选择文本文件...</label>
+                </div>
+                <div id="textFilesInfo" class="file-info"></div>
+            </div>
+            
+            <div class="upload-group">
+                <h3>📊 上传术语表（可选，Excel 格式）</h3>
+                <div class="file-input-wrapper">
+                    <input type="file" id="glossaryFile" class="file-input" accept=".xlsx,.xls">
+                    <label for="glossaryFile" class="file-input-label">选择术语表文件...</label>
+                </div>
+                <div id="glossaryInfo" class="file-info"></div>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <h3>🤖 选择翻译API</h3>
+            <div class="api-selector">
+                <div class="api-option" data-api="claude">
+                    <input type="checkbox" id="claudeApi">
+                    <label for="claudeApi">Claude API</label>
+                </div>
+                <div class="api-option" data-api="openai">
+                    <input type="checkbox" id="openaiApi">
+                    <label for="openaiApi">OpenAI GPT API</label>
+                </div>
+            </div>
+            
+            <div id="claudeKeySection" style="display: none;">
+                <input type="password" id="claudeKey" class="api-key-input" placeholder="请输入 Claude API Key">
+            </div>
+            
+            <div id="openaiKeySection" style="display: none;">
+                <input type="password" id="openaiKey" class="api-key-input" placeholder="请输入 OpenAI API Key">
+            </div>
+        </div>
+
+        <button id="translateBtn" class="translate-btn" disabled>开始翻译</button>
+        
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <div class="loading">正在翻译中，请稍候...</div>
+        
+        <div id="resultsContainer" class="results-container"></div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        class ChineseArabicTranslator {
+            constructor() {
+                this.textFiles = [];
+                this.glossary = [];
+                this.selectedAPIs = new Set();
+                this.apiKeys = {};
+                this.apiUrl = '/api/translate';
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.updateTranslateButton();
+            }
+
+            bindEvents() {
+                document.getElementById('textFiles').addEventListener('change', (e) => {
+                    this.handleTextFilesChange(e);
+                });
+
+                document.getElementById('glossaryFile').addEventListener('change', (e) => {
+                    this.handleGlossaryFileChange(e);
+                });
+
+                document.querySelectorAll('.api-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        this.handleApiSelection(e);
+                    });
+                });
+
+                document.getElementById('claudeKey').addEventListener('input', (e) => {
+                    this.apiKeys.claude = e.target.value;
+                    this.updateTranslateButton();
+                });
+
+                document.getElementById('openaiKey').addEventListener('input', (e) => {
+                    this.apiKeys.openai = e.target.value;
+                    this.updateTranslateButton();
+                });
+
+                document.getElementById('translateBtn').addEventListener('click', () => {
+                    this.startTranslation();
+                });
+            }
+
+            handleTextFilesChange(e) {
+                this.textFiles = Array.from(e.target.files);
+                const info = document.getElementById('textFilesInfo');
+                
+                if (this.textFiles.length > 0) {
+                    info.innerHTML = `已选择 ${this.textFiles.length} 个文件：<br>` + 
+                        this.textFiles.map(f => f.name).join('<br>');
+                    info.style.display = 'block';
+                } else {
+                    info.style.display = 'none';
+                }
+                
+                this.updateTranslateButton();
+            }
+
+            async handleGlossaryFileChange(e) {
+                const file = e.target.files[0];
+                const info = document.getElementById('glossaryInfo');
+                
+                if (file) {
+                    try {
+                        this.glossary = await this.parseGlossaryFile(file);
+                        info.innerHTML = `术语表已加载：${this.glossary.length} 条术语`;
+                        info.style.display = 'block';
+                        this.showToast(`成功加载 ${this.glossary.length} 条术语`, 'success');
+                    } catch (error) {
+                        info.innerHTML = `术语表加载失败：${error.message}`;
+                        info.style.display = 'block';
+                        this.showToast('术语表加载失败', 'error');
+                    }
+                } else {
+                    info.style.display = 'none';
+                    this.glossary = [];
+                }
+            }
+
+            async parseGlossaryFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                            
+                            const glossary = [];
+                            for (let i = 0; i < jsonData.length; i++) {
+                                const row = jsonData[i];
+                                if (row[0] && row[1]) {
+                                    glossary.push({
+                                        zh: row[0],
+                                        ar: row[1],
+                                        remark: row[2] || ''
+                                    });
+                                }
+                            }
+                            
+                            resolve(glossary);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    reader.onerror = () => reject(new Error('文件读取失败'));
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            handleApiSelection(e) {
+                const apiOption = e.currentTarget;
+                const api = apiOption.dataset.api;
+                const checkbox = apiOption.querySelector('input[type="checkbox"]');
+                
+                checkbox.checked = !checkbox.checked;
+                
+                if (checkbox.checked) {
+                    this.selectedAPIs.add(api);
+                    apiOption.classList.add('selected');
+                    document.getElementById(`${api}KeySection`).style.display = 'block';
+                } else {
+                    this.selectedAPIs.delete(api);
+                    apiOption.classList.remove('selected');
+                    document.getElementById(`${api}KeySection`).style.display = 'none';
+                    delete this.apiKeys[api];
+                }
+                
+                this.updateTranslateButton();
+            }
+
+            updateTranslateButton() {
+                const btn = document.getElementById('translateBtn');
+                const hasFiles = this.textFiles.length > 0;
+                const hasSelectedAPIs = this.selectedAPIs.size > 0;
+                const hasRequiredKeys = Array.from(this.selectedAPIs).every(api => 
+                    this.apiKeys[api] && this.apiKeys[api].trim() !== ''
+                );
+                
+                btn.disabled = !(hasFiles && hasSelectedAPIs && hasRequiredKeys);
+                
+                if (btn.disabled) {
+                    if (!hasFiles) {
+                        btn.textContent = '请先选择文本文件';
+                    } else if (!hasSelectedAPIs) {
+                        btn.textContent = '请选择翻译API';
+                    } else if (!hasRequiredKeys) {
+                        btn.textContent = '请输入API密钥';
+                    }
+                } else {
+                    btn.textContent = '开始翻译';
+                }
+            }
+
+            async startTranslation() {
+                const btn = document.getElementById('translateBtn');
+                const loading = document.querySelector('.loading');
+                const progressBar = document.querySelector('.progress-bar');
+                const progressFill = document.querySelector('.progress-fill');
+                
+                btn.disabled = true;
+                loading.style.display = 'block';
+                progressBar.style.display = 'block';
+                progressFill.style.width = '10%';
+                
+                try {
+                    const filesData = await this.prepareFilesData();
+                    progressFill.style.width = '30%';
+                    
+                    const requestData = {
+                        files: filesData,
+                        glossary: this.glossary,
+                        apiKeys: this.apiKeys,
+                        selectedAPIs: Array.from(this.selectedAPIs)
+                    };
+
+                    progressFill.style.width = '50%';
+                    
+                    const response = await fetch(this.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    progressFill.style.width = '80%';
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    progressFill.style.width = '100%';
+                    
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+                    
+                    this.displayResults(result.results);
+                    this.showToast('翻译完成！', 'success');
+                    
+                } catch (error) {
+                    console.error('Translation error:', error);
+                    this.showToast(`翻译失败: ${error.message}`, 'error');
+                } finally {
+                    btn.disabled = false;
+                    loading.style.display = 'none';
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                    this.updateTranslateButton();
+                }
+            }
+
+            async prepareFilesData() {
+                const filesData = [];
+                
+                for (const file of this.textFiles) {
+                    const content = await this.readFileContent(file);
+                    filesData.push({
+                        filename: file.name,
+                        content: content
+                    });
+                }
+                
+                return filesData;
+            }
+
+            async readFileContent(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = () => reject(new Error('文件读取失败'));
+                    reader.readAsText(file, 'utf-8');
+                });
+            }
+
+            displayResults(results) {
+                const container = document.getElementById('resultsContainer');
+                container.innerHTML = '';
+                
+                results.forEach(result => {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'file-result';
+                    
+                    const translationPanels = Object.entries(result.translations).map(([api, translation]) => {
+                        return `
+                            <div class="translation-panel">
+                                <div class="panel-header">
+                                    <span class="panel-title">${api.toUpperCase()} 翻译</span>
+                                    <button class="copy-btn" onclick="translator.copyToClipboard('${api}-${result.filename}')">复制</button>
+                                </div>
+                                <div id="${api}-${result.filename}" class="text-content arabic-text">${translation}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    fileDiv.innerHTML = `
+                        <div class="file-title">📄 ${result.filename}</div>
+                        <div class="translation-grid">
+                            <div class="translation-panel">
+                                <div class="panel-header">
+                                    <span class="panel-title">原文</span>
+                                    <button class="copy-btn" onclick="translator.copyToClipboard('original-${result.filename}')">复制</button>
+                                </div>
+                                <div id="original-${result.filename}" class="text-content">${result.original}</div>
+                            </div>
+                            ${translationPanels}
+                        </div>
+                    `;
+                    
+                    container.appendChild(fileDiv);
+                });
+                
+                container.style.display = 'block';
+            }
+
+            async copyToClipboard(elementId) {
+                try {
+                    const element = document.getElementById(elementId);
+                    await navigator.clipboard.writeText(element.textContent);
+                    this.showToast('已复制到剪贴板', 'success');
+                } catch (err) {
+                    console.error('复制失败:', err);
+                    this.showToast('复制失败', 'error');
+                }
+            }
+
+            showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // 初始化应用
+        const translator = new ChineseArabicTranslator();
+    </script>
+</body>
+</html>

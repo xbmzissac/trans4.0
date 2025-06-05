@@ -1,0 +1,36 @@
+app = "chinese-arabic-translator"
+primary_region = "nrt"  # 选择离你最近的区域
+
+[build]
+
+[env]
+  PORT = "8080"
+  FLASK_ENV = "production"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/api/health"
+
+[resources]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[[mounts]]
+  source = "uploads_volume"
+  destination = "/app/uploads"
+  initial_size = "1gb"
+
+[processes]
+  app = "gunicorn --bind 0.0.0.0:8080 --workers 2 --timeout 120 app:app"

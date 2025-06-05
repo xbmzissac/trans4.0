@@ -260,8 +260,17 @@ def health_check():
 
 # ================= 主程序 =================
 if __name__ == "__main__":
-    # 创建必要的目录
-    os.makedirs('uploads', exist_ok=True)
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port, debug=False)
 
-    logging.info("启动中阿翻译API服务器...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+    # 添加静态文件路由
+    @app.route('/')
+    def index():
+        return send_from_directory('static', 'index.html')
+
+
+    @app.route('/<path:path>')
+    def static_files(path):
+        return send_from_directory('static', path)
+
