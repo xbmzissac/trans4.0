@@ -17,11 +17,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 创建必要的目录
-RUN mkdir -p uploads templates
+RUN mkdir -p uploads
 
 # 移动HTML文件到templates目录（如果使用Flask模板）
 # 或者保持在static目录（如果作为静态文件服务）
-RUN if [ -f staticindex.html ]; then cp staticindex.html templates; fi
+
 
 # 暴露端口
 EXPOSE 8080

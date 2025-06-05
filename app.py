@@ -267,10 +267,6 @@ if __name__ == "__main__":
     # 添加静态文件路由
     @app.route('/')
     def index():
-        return send_from_directory('static', 'index.html')
+        return send_file('index.html')
 
-
-    @app.route('/<path:path>')
-    def static_files(path):
-        return send_from_directory('static', path)
 
